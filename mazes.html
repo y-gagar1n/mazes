@@ -26,7 +26,9 @@
 
     function drawMaze()
     {
+    	context.translate(0.5, 0.5);
     	context.beginPath();
+    	context.strokeStyle = "#000";
 
 		context.moveTo(0,0);
 		context.lineTo(h*mx, 0);
@@ -34,34 +36,63 @@
 		context.lineTo(0, h*my);
 		context.lineTo(0,0);
 
-		for(var i = 0; i < maze.length; i++){
-			for(var k = 0; k < i; k++) {
-				if(!maze[i][k]) {
+		for(var i = 0; i < mx; i++)
+		{
+			context.moveTo(i * h, 0);
+			context.lineTo(i * h, my * h);
+			context.moveTo(0, i * h);
+			context.lineTo(mx * h, i * h);
+		}
+
+		context.stroke();
+
+		context.beginPath();
+		context.strokeStyle = "#FFF";
+
+		var i = 0;
+		var k = 0;
+		var intervalId = setInterval(function() {
+			var drawn = false;
+			var end = false;
+			while(!drawn && !end)
+				{
+				if(maze[i][k]) {
+					drawn = true;
 					var horizontal = k + mx == i;
-					var vertical = k + 1 == i;
+					var vertical = (i % mx != 0) && (k + 1 == i);
 					if(horizontal) {
-						var x1 = (k % mx) * h;
+						var x1 = (k % mx) * h + 1;
 						var y1 = Math.floor(k / mx) * h + h;
 						context.moveTo(x1,y1);
-						var x2 = x1 + h;
+						var x2 = x1 + h - 2;
 						var y2 = y1;
 						context.lineTo(x2, y2);
 						context.stroke();
 					}
 					if(vertical) {
 						var x1 = (k % mx)* h + h;
-						var y1 = Math.floor(k / mx) * h;
+						var y1 = Math.floor(k / mx) * h + 1;
 						context.moveTo(x1,y1);
 						var x2 = x1;
-						var y2 = y1 + h;
+						var y2 = y1 + h - 2;
 						context.lineTo(x2,y2);
 						context.stroke();
 					}
 				}
-			}
-		}
 
-		context.stroke();
+				k++;
+				if(k >= i)
+				{
+					i++;
+					k = 0;
+				}
+				if(i >= maze.length) end = true;
+			}
+
+			if(end) clearInterval(intervalId);
+
+		}, 10);
+		
     }
 
     function count_index(x,y)
