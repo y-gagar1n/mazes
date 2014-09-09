@@ -1,14 +1,15 @@
-<canvas id="a" width="500" height="500"></canvas>
+<canvas id="a" width="501" height="501"></canvas>
 
 <script>
 	var canvas = document.getElementById("a");
 	var context = canvas.getContext("2d");
 	   
     var h= 10;
-    var mx = 40;
-    var my = 40;
+    var mx = 50;
+    var my = 50;
 
     var maze = new Array(mx*my);
+    var draw = [];
     for(var i = 0; i < mx*my; i++)
     {
     	maze[i] = new Array(mx*my);
@@ -31,9 +32,9 @@
     	context.strokeStyle = "#000";
 
 		context.moveTo(0,0);
-		context.lineTo(h*mx, 0);
-		context.lineTo(h*mx, h*my);
-		context.lineTo(0, h*my);
+		context.lineTo(h * mx, 0);
+		context.lineTo(h * mx, h * my);
+		context.lineTo(0, h * my);
 		context.lineTo(0,0);
 
 		for(var i = 0; i < mx; i++)
@@ -49,48 +50,42 @@
 		context.beginPath();
 		context.strokeStyle = "#FFF";
 
-		var i = 0;
-		var k = 0;
-		var intervalId = setInterval(function() {
-			var drawn = false;
-			var end = false;
-			while(!drawn && !end)
-				{
-				if(maze[i][k]) {
-					drawn = true;
-					var horizontal = k + mx == i;
-					var vertical = (i % mx != 0) && (k + 1 == i);
-					if(horizontal) {
-						var x1 = (k % mx) * h + 1;
-						var y1 = Math.floor(k / mx) * h + h;
-						context.moveTo(x1,y1);
-						var x2 = x1 + h - 2;
-						var y2 = y1;
-						context.lineTo(x2, y2);
-						context.stroke();
-					}
-					if(vertical) {
-						var x1 = (k % mx)* h + h;
-						var y1 = Math.floor(k / mx) * h + 1;
-						context.moveTo(x1,y1);
-						var x2 = x1;
-						var y2 = y1 + h - 2;
-						context.lineTo(x2,y2);
-						context.stroke();
-					}
-				}
+		context.moveTo(0,0);
+		context.lineTo(h - 1,0);
+		context.moveTo(mx * h, my * h);
+		context.lineTo(mx * h - h + 1, my * h);
+		context.stroke();
 
-				k++;
-				if(k >= i)
-				{
-					i++;
-					k = 0;
-				}
-				if(i >= maze.length) end = true;
+		var i = 0;
+		var intervalId = setInterval(function() {
+			var index1 = Math.min(draw[i][0], draw[i][1]);
+			var index2 = Math.max(draw[i][0], draw[i][1])
+			var horizontal = index1 + mx == index2;
+			var vertical = (index2 % mx != 0) && (index1 + 1 == index2);
+			if(horizontal) {
+				var x1 = (index1 % mx) * h + 1;
+				var y1 = Math.floor(index1 / mx) * h + h;
+				context.moveTo(x1,y1);
+				var x2 = x1 + h - 2;
+				var y2 = y1;
+				context.lineTo(x2, y2);
+				context.stroke();
+			}
+			if(vertical) {
+				var x1 = (index1 % mx) * h + h;
+				var y1 = Math.floor(index1 / mx) * h + 1;
+				context.moveTo(x1,y1);
+				var x2 = x1;
+				var y2 = y1 + h - 2;
+				context.lineTo(x2,y2);
+				context.stroke();
 			}
 
-			if(end) clearInterval(intervalId);
-
+			i++;
+			if(i >= draw.length) 
+			{
+				clearInterval(intervalId);
+			}
 		}, 10);
 		
     }
@@ -139,6 +134,7 @@
     				var prev_index = count_index(x,y);
     				maze[index][prev_index] = 1;
     				maze[prev_index][index] = 1;
+    				draw.push([prev_index, index]);
     				stack.push(next_pos);
     				visit(next_pos[0], next_pos[1])
     			}
