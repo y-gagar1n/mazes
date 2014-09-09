@@ -1,5 +1,6 @@
 <canvas id="a" width="501" height="501"></canvas>
-
+<a href="#" onclick="run()">Run</a>
+<a href="#" onclick="step()">Step</a>
 <script>
 	var canvas = document.getElementById("a");
 	var context = canvas.getContext("2d");
@@ -7,6 +8,7 @@
     var h= 10;
     var mx = 50;
     var my = 50;
+    var draw_index = 0;
 
     var maze = new Array(mx*my);
     var draw = [];
@@ -56,10 +58,23 @@
 		context.lineTo(mx * h - h + 1, my * h);
 		context.stroke();
 
-		var i = 0;
+	}
+
+	function run() {		
 		var intervalId = setInterval(function() {
-			var index1 = Math.min(draw[i][0], draw[i][1]);
-			var index2 = Math.max(draw[i][0], draw[i][1])
+			step();
+			if(draw_index >= draw.length) 
+			{
+				clearInterval(intervalId);
+			}
+		}, 0);		
+    }
+
+    function step() {
+    	if(draw_index < draw.length)
+    	{
+	    	var index1 = Math.min(draw[draw_index][0], draw[draw_index][1]);
+			var index2 = Math.max(draw[draw_index][0], draw[draw_index][1])
 			var horizontal = index1 + mx == index2;
 			var vertical = (index2 % mx != 0) && (index1 + 1 == index2);
 			if(horizontal) {
@@ -81,14 +96,10 @@
 				context.stroke();
 			}
 
-			i++;
-			if(i >= draw.length) 
-			{
-				clearInterval(intervalId);
-			}
-		}, 10);
-		
+			draw_index++;
+		}
     }
+    
 
     function count_index(x,y)
     {
