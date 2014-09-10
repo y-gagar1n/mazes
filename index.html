@@ -1,6 +1,7 @@
 <canvas id="a" width="501" height="501"></canvas>
 <a href="#" onclick="run()">Run</a>
 <a href="#" onclick="step()">Step</a>
+<a href="#" onclick="solve()">Solve</a>
 <script>
 	var canvas = document.getElementById("a");
 	var context = canvas.getContext("2d");
@@ -18,11 +19,14 @@
     }
 
 	var visited = new Array(my);
+    var sol_visited = new Array(my);
     for(var i = 0; i < my; i++)
     {
     	visited[i] = new Array(mx);
+        sol_visited[i] = new Array(mx);
     }
 	var stack = [];
+    var sol_stack = [];
 
 	var dx = [-1, 0, 1, 0];
 	var dy = [0, -1, 0, 1];
@@ -60,7 +64,24 @@
 
 	}
 
+    function drawSolution(solution) {
+        context.beginPath();
+        context.strokeStyle = "#f00";
+        context.moveTo(h/2,0);        
+
+        for(var i = 0; i < solution.length; i++) {
+            var x = solution[i][0] * h + h/2;
+            var y = solution[i][1] * h + h/2;
+            context.lineTo(x,y);
+        }        
+        context.lineTo(mx*h-h/2, my*h);
+
+        context.stroke();
+    }
+
 	function run() {		
+        context.beginPath();
+        context.strokeStyle = "#fff";
 		var intervalId = setInterval(function() {
 			step();
 			if(draw_index >= draw.length) 
@@ -106,7 +127,7 @@
     	return y * my + x;
     }
 
-    function get_available(x,y)
+    function get_available(x,y,visited)
     {
     	var avail = []
     	for(var i = 0; i < dx.length; i++)
@@ -124,6 +145,24 @@
     	return avail;
     }
 
+    function sol_get_available(x,y,visited, maze)
+    {
+        var avail = []
+        for(var i = 0; i < dx.length; i++)
+        {
+            newx = x + dx[i];
+            newy = y + dy[i];
+            if(newy < my && newy >=0 && newx < mx && newx >= 0)
+            {
+                if(!visited[newy][newx] && maze[count_index(newx, newy)][count_index(x,y)])
+                {
+                    avail.push(i);
+                }
+            }
+        }
+        return avail;
+    }
+
     function getRandomArbitary(max)
 	{
 	  return Math.floor(Math.random() * max);
@@ -132,7 +171,7 @@
     function visit(x,y) {
     	if(stack.length > 0) {
     		visited[y][x] = 1;
-    		avail = get_available(x,y);
+    		avail = get_available(x,y, visited);
     		while(avail.length > 0) {
     			var next_pos = undefined;
     			if(avail.length == 0) {
@@ -149,10 +188,43 @@
     				stack.push(next_pos);
     				visit(next_pos[0], next_pos[1])
     			}
-    			avail = get_available(x,y);
+    			avail = get_available(x,y, visited);
     		}
     	}
     }
+
+    function solve() {
+        sol_stack.push([0,0]);
+        solve_visit(0,0);
+        drawSolution(sol_stack);
+    }
+
+    function solve_visit(x,y) {
+        if(x == mx-1 && y == my-1) return true;
+        if(sol_stack.length > 0) {
+            sol_visited[y][x] = 1;
+            var avail = sol_get_available(x, y, sol_visited, maze);
+            while(avail.length > 0) {
+                var next_pos = undefined;
+                if(avail.length == 0)  // никуда не можем пойти, значит это тупик
+                    next_pos = sol_stack.pop()  // идем назад
+                else {
+                    var dest = avail[getRandomArbitary(avail.length)];
+                    next_pos = [x + dx[dest], y + dy[dest]];
+                    var index = count_index(next_pos[0], next_pos[1]);
+                    var prev_index = count_index(x,y);
+
+                    sol_stack.push(next_pos);
+                    if(solve_visit(next_pos[0], next_pos[1])) return true
+                }
+                avail = sol_get_available(x, y, sol_visited, maze);
+            }
+            sol_stack.pop();
+        }
+        return false;
+    }
+
+
 
     stack.push([0,0]);
     visit(0,0);
